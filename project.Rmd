@@ -1,0 +1,23 @@
+library(caret)
+dataset <-read.csv(file="pml-training.csv",head=TRUE,sep=",")
+dataset<-dataset[,2:160]
+dataset <- dataset[sapply(dataset, function(x) sum(is.na(x)))==0]
+dataset<-dataset[,sapply(dataset, function(v) var(v, na.rm=TRUE)!=0)]
+inTrain <- createDataPartition(y=dataset$classe,p=0.6,list=FALSE)
+
+training <- dataset[inTrain,]
+testing <- dataset[-inTrain,]
+numIndex <- sapply(dataset, is.numeric)
+preProc <- preProcess(training[,numIndex],method="pca",pcaComp=50)
+trainPC<-predict(preProc,training[,numIndex])
+modelFit<-train(training$classe~.,method="rpart",data=trainPC
+testPC<-predict(preProc,testing[,numIndex])
+confusionMatrix(testing$classe,predict(modelFit,testPC))
+
+testdataset <-read.csv(file="pml-training.csv",head=TRUE,sep=",")
+testdataset<-testdataset[,2:160]
+testdataset <- testdataset[sapply(testdataset, function(x) sum(is.na(x)))==0]
+testdataset<-testdataset[,sapply(dataset, function(v) var(v, na.rm=TRUE)!=0)]
+
+testdatasetPC<-predict(preProc,testdataset[,numIndex])
+result<-predict(modelFit,testdatasetPC)
